@@ -133,9 +133,10 @@ def generate_badge(args):
     output_path = os.path.join(args.output_dir, f"{args.badge_id}-{uuid.uuid4()}.png")
     
     print(f"Baking badge to: {output_path}")
-    # CRITICAL FIX: The badge() function call for Open Badges requires specific keyword arguments
-    # to distinguish it from an SVG badge call.
+    # CRITICAL FIX: Explicitly set left_text to None to force the library
+    # to correctly interpret the other keyword arguments for Open Badge generation.
     badge(
+        left_text=None,
         assertion=assertion,
         signature_key=private_key,
         output_file=output_path
