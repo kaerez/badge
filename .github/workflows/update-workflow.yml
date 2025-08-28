@@ -45,6 +45,10 @@ jobs:
           if [[ -n $(git status --porcelain) ]]; then
             echo "Changes detected. Committing..."
             git commit -m "ci: Sync badge system from badges.yml"
+            
+            # **FIX**: Pull latest changes with rebase to avoid conflicts
+            git pull --rebase
+            
             # The push command will now use the token provided during checkout
             git push
           else
