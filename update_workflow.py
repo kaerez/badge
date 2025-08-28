@@ -25,34 +25,40 @@ def update_workflow_file(config):
     badge_ids = list(config.get('badges', {}).keys())
     global_inputs = config.get('global_inputs', {})
     
+    # --- Determine which UI inputs are needed ---
     ui_inputs = set()
     for badge_data in config.get('badges', {}).values():
         for input_key, input_config in badge_data.get('inputs', {}).items():
             if not (isinstance(input_config, dict) and input_config.get('input') is False):
                 ui_inputs.add(input_key)
-    
     if any(badge.get('expires') for badge in config.get('badges', {}).values()):
         ui_inputs.add('expires')
+    print(f"All unique UI inputs required: {sorted(list(ui_inputs))}")
 
-    print(f"All unique UI inputs used across badges: {sorted(list(ui_inputs))}")
+    # --- NEW: Collect only the secrets that are actually needed ---
+    required_secrets = {'RECIPIENT_SALT'} # Always required
+    for issuer_data in config.get('issuers', {}).values():
+        secret_name = issuer_data.get('private_key_secret_name')
+        if secret_name:
+            required_secrets.add(secret_name)
+    print(f"All unique secrets required: {sorted(list(required_secrets))}")
 
-    # --- FIX: Build the complete workflow dictionary first ---
+    # --- Build the dynamic env block with only the required secrets ---
+    dynamic_env = {secret: f'${{{{ secrets.{secret} }}}}' for secret in sorted(list(required_secrets))}
+
+    # --- Build the complete workflow dictionary ---
     run_script = LiteralString(
         'mkdir -p badges_output\n'
         'python_args="--output-dir badges_output"\n'
-        '# Use jq to iterate over the inputs JSON object and build the command\n'
         'for key in $(echo \'${{ toJSON(github.event.inputs) }}\' | jq -r \'keys[]\'); do\n'
         '  value=$(echo \'${{ toJSON(github.event.inputs) }}\' | jq -r --arg k "$key" \'.[$k]\')\n'
-        '  # Add to args if the value is not null or an empty string\n'
         '  if [[ "$value" != "null" && -n "$value" ]]; then\n'
         '    python_args="$python_args --$key \\"$value\\""\n'
         '  fi\n'
         'done\n'
-        '# Execute the python script with the dynamically constructed arguments\n'
         'eval "python generate_badge.py $python_args"\n'
     )
     
-    # Define the full structure of the workflow
     new_workflow_data = {
         'name': 'Generate Open Badge',
         'on': {'workflow_dispatch': {'inputs': {}}},
@@ -64,7 +70,7 @@ def update_workflow_file(config):
                     {'name': 'Checkout repository', 'uses': 'actions/checkout@v4'},
                     {'name': 'Set up Python 3.10', 'uses': 'actions/setup-python@v5', 'with': {'python-version': '3.10'}},
                     {'name': 'Install dependencies', 'run': 'pip install -r requirements.txt'},
-                    {'name': 'Generate Badge', 'run': run_script, 'env': '${{ toJSON(secrets) }}'},
+                    {'name': 'Generate Badge', 'run': run_script, 'env': dynamic_env},
                     {
                         'name': 'Upload Badge as Artifact',
                         'uses': 'actions/upload-artifact@v4',
@@ -78,7 +84,6 @@ def update_workflow_file(config):
         }
     }
     
-    # Now, build and inject the dynamic inputs into the complete structure
     dynamic_inputs = {
         'badge_id': {'description': 'Select the badge', 'required': True, 'type': 'choice', 'options': sorted(badge_ids)},
         'recipient_email': {'description': "Recipient's Email", 'required': True, 'type': 'string'}
@@ -91,9 +96,7 @@ def update_workflow_file(config):
 
         dynamic_inputs[input_key] = {
             'description': input_config.get('description', f'Value for {input_key}'),
-            'required': False,
-            'type': 'string',
-            'default': input_config.get('default', '')
+            'required': False, 'type': 'string', 'default': input_config.get('default', '')
         }
     
     new_workflow_data['on']['workflow_dispatch']['inputs'] = dynamic_inputs
