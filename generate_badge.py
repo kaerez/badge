@@ -6,9 +6,11 @@ import yaml
 import hashlib
 import uuid
 import argparse
+import requests
+import tempfile
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-from pybadges import badge
+from openbadges_bakery import bake
 
 def get_utc_now_iso():
     """Returns the current UTC time in the required ISO 8601 format."""
@@ -133,14 +135,26 @@ def generate_badge(args):
     output_path = os.path.join(args.output_dir, f"{args.badge_id}-{uuid.uuid4()}.png")
     
     print(f"Baking badge to: {output_path}")
-    # CRITICAL FIX: Explicitly set left_text to None to force the library
-    # to correctly interpret the other keyword arguments for Open Badge generation.
-    badge(
-        left_text=None,
-        assertion=assertion,
-        signature_key=private_key,
-        output_file=output_path
-    )
+
+    # Fetch the badge image
+    image_url = badge_class['image']
+    response = requests.get(image_url, stream=True)
+    response.raise_for_status()
+
+    # Create a temporary file to store the image
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_image:
+        for chunk in response.iter_content(chunk_size=8192):
+            temp_image.write(chunk)
+        temp_image_path = temp_image.name
+
+    # Bake the assertion into the image
+    with open(temp_image_path, 'rb') as image_file:
+        with open(output_path, 'wb') as output_file:
+            bake(image_file, json.dumps(assertion), output_file)
+
+    # Clean up the temporary image file
+    os.remove(temp_image_path)
+
     print("--- Badge generated successfully! ---")
 
 if __name__ == "__main__":

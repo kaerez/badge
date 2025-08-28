@@ -1,2 +1,3 @@
 PyYAML
-pybadges
+openbadges-bakery
+requests
