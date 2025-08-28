@@ -1,5 +1,5 @@
 # badges.yml
-repository_url: "https://kaerez.github.io/badges"
+repository_url: "https://kaerez.github.io/badge"
 
 # Define all possible issuer profiles here. Each key is a unique ID.
 issuers:
