@@ -44,7 +44,7 @@ badges:
   vsre1:
     name: "VSRE Level I - Verified Security Risk Expert"
     description: "Salesforce Verified Security Risk Expert Level I"
-    image: "{repository_url}/images/vsre1.png"
+    image: "{repository_url}/image/vsre1.png"
     criteria: |-
       "1. Recipient must have a security role/responsibility and demonstrate exceptional security knowledge and skill.
       2. A valid FIRST CVSS 4.0 certification is required.
