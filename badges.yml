@@ -1,52 +1,63 @@
 # badges.yml
-repository_url: "https://your-username.github.io/your-repo-name"
+repository_url: "https://kaerez.github.io/badges"
 
 # Define all possible issuer profiles here. Each key is a unique ID.
 issuers:
-  acme_community:
-    name: "Acme Community Team"
-    url: "https://example.com/community"
-    email: "community@example.com"
-    publicKey: "{repository_url}/public/acme-community-public.pem"
+  ksec:
+    name: "KSEC"
+    url: "https://www.kalman.co.il"
+    email: ""
+    publicKey: "{repository_url}/public/ksec.pem"
     # The name of the GitHub Secret containing the private key for this issuer.
-    private_key_secret_name: "COMMUNITY_SIGNING_KEY"
+    private_key_secret_name: "ksec"
   
-  acme_product:
-    name: "Acme Product Team"
-    url: "https://example.com/products"
-    email: "product@example.com"
-    publicKey: "{repository_url}/public/acme-product-public.pem"
-    private_key_secret_name: "PRODUCT_SIGNING_KEY"
+  isc2il:
+    name: "ISC2 IL"
+    url: "https://isc2chapter-israel.org"
+    email: ""
+    publicKey: "{repository_url}/public/ksec.pem"
+    # The name of the GitHub Secret containing the private key for this issuer.
+    private_key_secret_name: "ksec"
+
+  sfdc:
+    name: "Salesforce Security"
+    url: "https://www.salesforce.com"
+    email: "certifications@salesforce.com"
+    publicKey: "{repository_url}/public/ksec.pem"
+    # The name of the GitHub Secret containing the private key for this issuer.
+    private_key_secret_name: "ksec"    
 
 # Define a library of all possible input fields that can be used by badges.
+# startDate, level, and credentialId are commonly used by issuers although not part of the 2.0 standard
+# expires is part of the standard and should not be added to the global inputs, just add to the badge (expires: true) if you want to add it
 global_inputs:
-  evidence_url:
-    description: 'URL to evidence of achievement (e.g., PR, document)'
-  notes:
-    description: 'Additional notes for the assertion (optional)'
-  reviewer_name:
-    description: 'Name of the person who approved this badge'
+  startDate:
+    description: 'Eligibility earned date - YYYY-MM-DDTHH:MM:SSZ format, e.g. 2025-08-28T10:20:00Z'
+    date: true
+  level:
+    description: 'Level'
+  credentialId:
+    description: "Unique badge ID"
 
 # Define all issuable badges.
 badges:
-  contributor-2024:
-    name: "Community Contributor 2024"
-    description: "For significant contributions to the community in 2024."
-    image: "{repository_url}/images/contributor-badge.png"
-    criteria: "The earner has made at least 10 substantive contributions."
+  vsre1:
+    name: "VSRE Level I - Verified Security Risk Expert"
+    description: "Salesforce Verified Security Risk Expert Level I"
+    image: "{repository_url}/images/vsre1.png"
+    criteria: |-
+      "1. Recipient must have a security role/responsibility and demonstrate exceptional security knowledge and skill.
+      2. A valid FIRST CVSS 4.0 certification is required.
+      The next step in this path is VSRE II."
     # Reference an issuer by its ID.
-    issuer_id: "acme_community"
+    issuer_id: "sfdc"
     # Specify which inputs from 'global_inputs' are required for this badge.
     inputs:
-      evidence_url: true
-      reviewer_name: true
-
-  beta-tester:
-    name: "Beta Tester"
-    description: "For providing valuable feedback during the beta testing program."
-    image: "{repository_url}/images/beta-tester-badge.png"
-    criteria: "The earner participated in a formal beta program."
-    issuer_id: "acme_product"
-    inputs:
-      evidence_url: true
-      notes: true
+      startDate: true
+        required: false
+        default_now: true
+      expires: true
+        required: false
+      level: true
+        input: false
+        default: "Level: I of III"
