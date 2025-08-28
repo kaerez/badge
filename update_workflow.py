@@ -127,7 +127,7 @@ def generate_issuer_files(config):
             if isinstance(value, str):
                 issuer_profile[key] = value.format(repository_url=repo_url)
         
-        issuer_profile.update({'@context': "https://w3id.org/openbadges/v2", 'type': "Issuer"})
+        issuer_profile.update({'@context': "https://wid.org/openbadges/v2", 'type': "Issuer"})
         issuer_profile.pop('private_key_secret_name', None)
 
         with open(output_path, 'w') as f:
