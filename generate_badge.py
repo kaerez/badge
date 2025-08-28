@@ -7,7 +7,7 @@ import hashlib
 import uuid
 import argparse
 from datetime import datetime, timezone
-from urllib.parse import urlparse  # <-- CRITICAL FIX: Added the missing import
+from urllib.parse import urlparse
 from pybadges import badge
 
 def get_utc_now_iso():
@@ -132,14 +132,12 @@ def generate_badge(args):
 
     output_path = os.path.join(args.output_dir, f"{args.badge_id}-{uuid.uuid4()}.png")
     
-    # The image path needs to be a local file path, not a URL.
-    # We can derive it from the image URL.
     image_url_path = urlparse(badge_config['image']).path.lstrip('/')
     
     print(f"Baking badge to: {output_path}")
-    # The parameter name for the image is 'input_file', not 'image'.
+    # CRITICAL FIX: The parameter name is 'image', not 'input_file'.
     badge(
-        input_file=image_url_path,
+        image=image_url_path,
         assertion=assertion,
         signature_key=private_key,
         output_file=output_path
