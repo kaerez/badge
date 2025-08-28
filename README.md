@@ -54,7 +54,7 @@ You need an RSA key pair for each distinct issuer profile you intend to use.
         openssl rsa -in my-issuer-private.pem -pubout -out my-issuer-public.pem
         ```
     * **Option B (CyberChef)**: Use this pre-configured link to generate an RSA key pair directly in your browser.
-        * [**CyberChef: Generate RSA Key Pair**](https://gchq.github.io/CyberChef/#recipe=Generate_RSA_Key_Pair(2048,65537,'PEM','PKCS8'))
+        * [**CyberChef: Generate RSA Key Pair**](https://gchq.github.io/CyberChef/#recipe=Generate_RSA_Key_Pair('2048','PEM')&oeol=CRLF))
         * Copy the generated "Private Key" and "Public Key" into `.pem` files.
 
 2.  **Place Public Key**: Move the public key file (`my-issuer-public.pem`) into the `/public` directory of your repository.
@@ -66,7 +66,7 @@ Go to your repository's `Settings` > `Secrets and variables` > `Actions`. Create
 1.  **`RECIPIENT_SALT`**:
     * A single, long, random string used to hash recipient emails. **Do not change this after you start issuing badges.**
     * You can generate a secure random string using this CyberChef link:
-        * [**CyberChef: Generate Random String for SALT**](https://gchq.github.io/CyberChef/#recipe=Generate_Random(32,'A-Za-z0-9-_','')&output=Base64)
+        * [**CyberChef: Generate Random String for SALT**](https://gchq.github.io/CyberChef/#recipe=Pseudo-Random_Number_Generator(256,'Hex'))
 
 2.  **Private Key Secrets**:
     * For **each** private key you generated, create a **separate** repository secret.
