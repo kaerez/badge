@@ -2,8 +2,24 @@
   "name": "Salesforce Security",
   "url": "https://www.salesforce.com",
   "email": "certifications@salesforce.com",
-  "publicKey": "https://kaerez.github.io/badge/public/ksec.pem",
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.0.json"
+  ],
+  "type": [
+    "Issuer",
+    "Profile"
+  ],
   "id": "https://kaerez.github.io/badge/public/sfdc-issuer.json",
-  "@context": "https://wid.org/openbadges/v2",
-  "type": "Issuer"
+  "verification": {
+    "id": "https://kaerez.github.io/badge/public/sfdc-issuer.json#key-1",
+    "type": "CryptographicKey",
+    "controller": "https://kaerez.github.io/badge/public/sfdc-issuer.json",
+    "publicKeyJwk": {
+      "e": "AQAB",
+      "kid": "3mi_pf_lnh4HtsMQRrmD07ItbtZpWGRRYQKnYJuNJIs",
+      "kty": "RSA",
+      "n": "mgbTE6GozEieco3rafARZ3k5Rq1Xcr-NGliLKIseQyDBaksU7UFdOA7sjpN9OzcZyI4IhC8U6uc78d3Xoym1aeerOjYep0ShTWLbcpHf8RGumAGW_SCtBZlEsg8zKsLxUq6Xztg3XRidBerTYk5h4OK0LVfdMxmRG7JUU571Uj2DLX0CVq0zmI1HIc-ruXM_5BghxK0ffsHyPlC6gxhLo0Nldd6ZBGk11HP8l250MzCy7ovb8THDYooG0SyRcLHihGrPwEFriErPt46qU-KInBr0yGKwfr2wkwjl2mz-PydBCascKKNtI67yMf7YVUWaW2q8ZO4jRmncOZKD5Q2-Bw"
+    }
+  }
 }

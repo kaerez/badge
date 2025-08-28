@@ -14,7 +14,7 @@ issuers:
   isc2il:
     name: "ISC2 IL"
     url: "https://isc2chapter-israel.org"
-    email: ""
+    email: "info@isc2chapter-israel.org"
     publicKey: "{repository_url}/public/ksec.pem"
     # The name of the GitHub Secret containing the private key for this issuer.
     private_key_secret_name: "ksec"

@@ -76,7 +76,7 @@ def update_workflow_file(config):
                         'uses': 'actions/upload-artifact@v4',
                         'with': {
                             'name': 'open-badge-${{ github.event.inputs.badge_id }}-${{ github.run_id }}',
-                            'path': 'badges_output/'
+                            'path': 'badges_output/*.png'
                         }
                     }
                 ]
@@ -111,6 +111,15 @@ def update_workflow_file(config):
     print(f"Successfully created/updated {WORKFLOW_PATH}.")
 
 
+from jwcrypto import jwk
+
+def pem_to_jwk(pem_file_path):
+    """Reads a PEM file and converts it to a public JWK."""
+    with open(pem_file_path, 'rb') as pem_file:
+        public_key = jwk.JWK.from_pem(pem_file.read())
+    # Return public part as a dictionary
+    return json.loads(public_key.export_public())
+
 def generate_issuer_files(config):
     """Generates public issuer JSON files from the issuers block."""
     print("\n--- Generating Issuer Files ---")
@@ -120,19 +129,83 @@ def generate_issuer_files(config):
     for issuer_id, issuer_data in config.get('issuers', {}).items():
         filename = f"{issuer_id}-issuer.json"
         output_path = os.path.join(ISSUER_OUTPUT_DIR, filename)
+
+        # Create the base profile by copying data
         issuer_profile = json.loads(json.dumps(issuer_data))
+
+        # Remove fields that are not part of the OBv3 issuer profile
+        issuer_profile.pop('private_key_secret_name', None)
+        public_key_path_str = issuer_profile.pop('publicKey', None)
+
+        # Set required OBv3 fields
+        issuer_profile['@context'] = ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.0.json"]
+        issuer_profile['type'] = ["Issuer", "Profile"]
         issuer_profile['id'] = f"{repo_url}/{ISSUER_OUTPUT_DIR}/{filename}"
         
+        # Process URL formatting
         for key, value in issuer_profile.items():
             if isinstance(value, str):
                 issuer_profile[key] = value.format(repository_url=repo_url)
-        
-        issuer_profile.update({'@context': "https://wid.org/openbadges/v2", 'type': "Issuer"})
-        issuer_profile.pop('private_key_secret_name', None)
+
+        # Add verification method using the public key
+        if public_key_path_str:
+            public_key_path = public_key_path_str.format(repository_url=repo_url)
+            # The public_key_path in the YAML is relative to the repo root, e.g. "public/ksec.pem"
+            # We need to construct the full local path to read it.
+            local_pem_path = public_key_path.replace(f"{repo_url}/", "")
+            if os.path.exists(local_pem_path):
+                public_jwk = pem_to_jwk(local_pem_path)
+                issuer_profile['verification'] = {
+                    "id": f"{issuer_profile['id']}#key-1",
+                    "type": "CryptographicKey",
+                    "controller": issuer_profile['id'],
+                    "publicKeyJwk": public_jwk
+                }
+            else:
+                print(f"Warning: PEM file not found at {local_pem_path} for issuer {issuer_id}")
 
         with open(output_path, 'w') as f:
             json.dump(issuer_profile, f, indent=2)
-        print(f"Generated/Updated issuer file: {output_path}")
+        print(f"Generated/Updated v3.0 issuer file: {output_path}")
+
+
+def generate_badge_class_files(config):
+    """Generates public BadgeClass JSON files from the badges block."""
+    print("\n--- Generating BadgeClass Files ---")
+    BADGE_CLASS_OUTPUT_DIR = os.path.join(ISSUER_OUTPUT_DIR, 'badges')
+    os.makedirs(BADGE_CLASS_OUTPUT_DIR, exist_ok=True)
+    repo_url = config['repository_url']
+
+    for badge_id, badge_data in config.get('badges', {}).items():
+        filename = f"{badge_id}.json"
+        output_path = os.path.join(BADGE_CLASS_OUTPUT_DIR, filename)
+
+        issuer_id = badge_data['issuer_id']
+        issuer_url = f"{repo_url}/{ISSUER_OUTPUT_DIR}/{issuer_id}-issuer.json"
+
+        # Create the BadgeClass object
+        badge_class_obj = {
+            '@context': ["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.0.json"],
+            'type': 'BadgeClass',
+            'id': f"{repo_url}/{BADGE_CLASS_OUTPUT_DIR}/{filename}",
+            'issuer': issuer_url,
+            'name': badge_data['name'],
+            'description': badge_data['description'],
+            'image': badge_data['image'].format(repository_url=repo_url),
+            'criteria': {
+                'id': f"{repo_url}/criteria/{badge_id}.html", # Assuming criteria might have its own page
+                'type': 'Criteria',
+                'narrative': badge_data['criteria']
+            }
+        }
+        # Clean up unnecessary fields from badge_data if any were copied
+        badge_class_obj.pop('issuer_id', None)
+        badge_class_obj.pop('inputs', None)
+        badge_class_obj.pop('expires', None)
+
+        with open(output_path, 'w') as f:
+            json.dump(badge_class_obj, f, indent=2)
+        print(f"Generated/Updated v3.0 BadgeClass file: {output_path}")
 
 if __name__ == "__main__":
     print("--- Starting update process ---")
@@ -141,4 +214,5 @@ if __name__ == "__main__":
     
     update_workflow_file(config)
     generate_issuer_files(config)
+    generate_badge_class_files(config)
     print("\n--- Update process finished ---")

@@ -1,3 +1,4 @@
 PyYAML
-openbadges-bakery
 requests
+jwcrypto
+pypng
