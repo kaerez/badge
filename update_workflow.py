@@ -18,10 +18,25 @@ BADGE_CONFIG_PATH = 'badges.yml'
 WORKFLOW_PATH = '.github/workflows/generate-badge.yml'
 ISSUER_OUTPUT_DIR = 'public'
 
-def get_workflow_template():
-    """Returns the complete, static template for the generate-badge.yml workflow."""
-    # FIX: This script is now fully dynamic. It iterates through all provided
-    # workflow inputs at runtime and builds the argument string for the python script.
+def update_workflow_file(config):
+    """Dynamically builds and completely overwrites the generate-badge.yml workflow."""
+    print("\n--- Updating Generation Workflow ---")
+    
+    badge_ids = list(config.get('badges', {}).keys())
+    global_inputs = config.get('global_inputs', {})
+    
+    ui_inputs = set()
+    for badge_data in config.get('badges', {}).values():
+        for input_key, input_config in badge_data.get('inputs', {}).items():
+            if not (isinstance(input_config, dict) and input_config.get('input') is False):
+                ui_inputs.add(input_key)
+    
+    if any(badge.get('expires') for badge in config.get('badges', {}).values()):
+        ui_inputs.add('expires')
+
+    print(f"All unique UI inputs used across badges: {sorted(list(ui_inputs))}")
+
+    # --- FIX: Build the complete workflow dictionary first ---
     run_script = LiteralString(
         'mkdir -p badges_output\n'
         'python_args="--output-dir badges_output"\n'
@@ -36,8 +51,9 @@ def get_workflow_template():
         '# Execute the python script with the dynamically constructed arguments\n'
         'eval "python generate_badge.py $python_args"\n'
     )
-
-    return {
+    
+    # Define the full structure of the workflow
+    new_workflow_data = {
         'name': 'Generate Open Badge',
         'on': {'workflow_dispatch': {'inputs': {}}},
         'jobs': {
@@ -61,27 +77,8 @@ def get_workflow_template():
             }
         }
     }
-
-def update_workflow_file(config):
-    """Dynamically builds and completely overwrites the generate-badge.yml workflow."""
-    print("\n--- Updating Generation Workflow ---")
     
-    badge_ids = list(config.get('badges', {}).keys())
-    global_inputs = config.get('global_inputs', {})
-    
-    ui_inputs = set()
-    for badge_data in config.get('badges', {}).values():
-        for input_key, input_config in badge_data.get('inputs', {}).items():
-            if not (isinstance(input_config, dict) and input_config.get('input') is False):
-                ui_inputs.add(input_key)
-    
-    if any(badge.get('expires') for badge in config.get('badges', {}).values()):
-        ui_inputs.add('expires')
-
-    print(f"All unique UI inputs used across badges: {sorted(list(ui_inputs))}")
-
-    new_workflow_data = get_workflow_template()
-    
+    # Now, build and inject the dynamic inputs into the complete structure
     dynamic_inputs = {
         'badge_id': {'description': 'Select the badge', 'required': True, 'type': 'choice', 'options': sorted(badge_ids)},
         'recipient_email': {'description': "Recipient's Email", 'required': True, 'type': 'string'}
