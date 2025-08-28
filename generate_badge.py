@@ -71,7 +71,7 @@ def sign_credential(payload, private_key_pem):
     """Signs a dictionary payload and returns a JWS."""
     private_key = jwk.JWK.from_pem(private_key_pem.encode('utf-8'))
     jwstoken = jws.JWS(json.dumps(payload).encode('utf-8'))
-    jwstoken.add_signature(private_key, None, json.dumps({"alg": "RS256"}), protected=json.dumps({"b64": False, "crit": ["b64"]}))
+    jwstoken.add_signature(private_key, protected=json.dumps({"alg": "RS256", "b64": False, "crit": ["b64"]}))
     return jwstoken.serialize(compact=True)
 
 def embed_jws_in_png(input_image_path, jws_string, output_path):
