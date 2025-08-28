@@ -127,50 +127,44 @@ def generate_issuer_files(config):
             if isinstance(value, str):
                 issuer_profile[key] = value.format(repository_url=repo_url)
         
-        issuer_profile.update({'@context': "https://wid.org/openbadges/v2", 'type': "Issuer"})
+        issuer_profile['type'] = "Profile"
         issuer_profile.pop('private_key_secret_name', None)
 
         with open(output_path, 'w') as f:
             json.dump(issuer_profile, f, indent=2)
         print(f"Generated/Updated issuer file: {output_path}")
 
-def generate_badge_class_files(config):
-    """Generates public BadgeClass JSON files from the badges block."""
-    print("\n--- Generating BadgeClass Files ---")
-    BADGE_CLASS_OUTPUT_DIR = os.path.join(ISSUER_OUTPUT_DIR, 'badges')
-    os.makedirs(BADGE_CLASS_OUTPUT_DIR, exist_ok=True)
+def generate_achievement_files(config):
+    """Generates public Achievement JSON files from the badges block for OB 3.0."""
+    print("\n--- Generating Achievement Files ---")
+    ACHIEVEMENT_OUTPUT_DIR = os.path.join(ISSUER_OUTPUT_DIR, 'badges')
+    os.makedirs(ACHIEVEMENT_OUTPUT_DIR, exist_ok=True)
     repo_url = config['repository_url']
 
     for badge_id, badge_data in config.get('badges', {}).items():
         filename = f"{badge_id}.json"
-        output_path = os.path.join(BADGE_CLASS_OUTPUT_DIR, filename)
+        output_path = os.path.join(ACHIEVEMENT_OUTPUT_DIR, filename)
 
-        # Get the full issuer object
-        issuer_id = badge_data['issuer_id']
-        issuer_data = config['issuers'][issuer_id]
-        full_issuer_object = json.loads(json.dumps(issuer_data))
-        issuer_filename = f"{issuer_id}-issuer.json"
-        full_issuer_object['id'] = f"{repo_url}/{ISSUER_OUTPUT_DIR}/{issuer_filename}"
-        for key, value in full_issuer_object.items():
-            if isinstance(value, str):
-                full_issuer_object[key] = value.format(repository_url=repo_url)
-        full_issuer_object.pop('private_key_secret_name', None)
-
-        # Create the BadgeClass object
-        badge_class_obj = {
-            '@context': "https://w3id.org/openbadges/v2",
-            'type': 'BadgeClass',
-            'id': f"{repo_url}/{BADGE_CLASS_OUTPUT_DIR}/{filename}",
+        # Create the Achievement object
+        achievement_obj = {
+            '@context': [
+                "https://www.w3.org/ns/credentials/v2",
+                "https://purl.imsglobal.org/spec/ob/v3p0/context.json"
+            ],
+            'type': 'Achievement',
+            'id': f"{repo_url}/{ACHIEVEMENT_OUTPUT_DIR}/{filename}",
             'name': badge_data['name'],
             'description': badge_data['description'],
-            'image': badge_data['image'].format(repository_url=repo_url),
             'criteria': {'narrative': badge_data['criteria']},
-            'issuer': full_issuer_object
+            'image': {
+                'id': badge_data['image'].format(repository_url=repo_url),
+                'type': 'Image'
+            }
         }
 
         with open(output_path, 'w') as f:
-            json.dump(badge_class_obj, f, indent=2)
-        print(f"Generated/Updated BadgeClass file: {output_path}")
+            json.dump(achievement_obj, f, indent=2)
+        print(f"Generated/Updated Achievement file: {output_path}")
 
 if __name__ == "__main__":
     print("--- Starting update process ---")
@@ -179,5 +173,5 @@ if __name__ == "__main__":
     
     update_workflow_file(config)
     generate_issuer_files(config)
-    generate_badge_class_files(config)
+    generate_achievement_files(config)
     print("\n--- Update process finished ---")

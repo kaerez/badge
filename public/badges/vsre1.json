@@ -1,18 +1,17 @@
 {
-  "@context": "https://w3id.org/openbadges/v2",
-  "type": "BadgeClass",
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context.json"
+  ],
+  "type": "Achievement",
   "id": "https://kaerez.github.io/badge/public/badges/vsre1.json",
   "name": "VSRE Level I - Verified Security Risk Expert",
   "description": "Salesforce Verified Security Risk Expert Level I",
-  "image": "https://kaerez.github.io/badge/image/vsre1.png",
   "criteria": {
     "narrative": "\"1. Recipient must have a security role/responsibility and demonstrate exceptional security knowledge and skill.\n2. A valid FIRST CVSS 4.0 certification is required.\nThe next step in this path is VSRE II.\""
   },
-  "issuer": {
-    "name": "Salesforce Security",
-    "url": "https://www.salesforce.com",
-    "email": "certifications@salesforce.com",
-    "publicKey": "https://kaerez.github.io/badge/public/ksec.pem",
-    "id": "https://kaerez.github.io/badge/public/sfdc-issuer.json"
+  "image": {
+    "id": "https://kaerez.github.io/badge/image/vsre1.png",
+    "type": "Image"
   }
 }

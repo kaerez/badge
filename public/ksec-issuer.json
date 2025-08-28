@@ -4,6 +4,5 @@
   "email": "",
   "publicKey": "https://kaerez.github.io/badge/public/ksec.pem",
   "id": "https://kaerez.github.io/badge/public/ksec-issuer.json",
-  "@context": "https://wid.org/openbadges/v2",
-  "type": "Issuer"
+  "type": "Profile"
 }
