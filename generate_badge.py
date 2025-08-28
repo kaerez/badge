@@ -135,9 +135,9 @@ def generate_badge(args):
     image_url_path = urlparse(badge_config['image']).path.lstrip('/')
     
     print(f"Baking badge to: {output_path}")
-    # CRITICAL FIX: The parameter name is 'image', not 'input_file'.
+    # CRITICAL FIX: The parameter name for the image is 'input_file', not 'image'.
     badge(
-        image=image_url_path,
+        input_file=image_url_path,
         assertion=assertion,
         signature_key=private_key,
         output_file=output_path
