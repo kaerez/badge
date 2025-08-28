@@ -1,0 +1,52 @@
+# badges.yml
+repository_url: "https://your-username.github.io/your-repo-name"
+
+# Define all possible issuer profiles here. Each key is a unique ID.
+issuers:
+  acme_community:
+    name: "Acme Community Team"
+    url: "https://example.com/community"
+    email: "community@example.com"
+    publicKey: "{repository_url}/public/acme-community-public.pem"
+    # The name of the GitHub Secret containing the private key for this issuer.
+    private_key_secret_name: "COMMUNITY_SIGNING_KEY"
+  
+  acme_product:
+    name: "Acme Product Team"
+    url: "https://example.com/products"
+    email: "product@example.com"
+    publicKey: "{repository_url}/public/acme-product-public.pem"
+    private_key_secret_name: "PRODUCT_SIGNING_KEY"
+
+# Define a library of all possible input fields that can be used by badges.
+global_inputs:
+  evidence_url:
+    description: 'URL to evidence of achievement (e.g., PR, document)'
+  notes:
+    description: 'Additional notes for the assertion (optional)'
+  reviewer_name:
+    description: 'Name of the person who approved this badge'
+
+# Define all issuable badges.
+badges:
+  contributor-2024:
+    name: "Community Contributor 2024"
+    description: "For significant contributions to the community in 2024."
+    image: "{repository_url}/images/contributor-badge.png"
+    criteria: "The earner has made at least 10 substantive contributions."
+    # Reference an issuer by its ID.
+    issuer_id: "acme_community"
+    # Specify which inputs from 'global_inputs' are required for this badge.
+    inputs:
+      evidence_url: true
+      reviewer_name: true
+
+  beta-tester:
+    name: "Beta Tester"
+    description: "For providing valuable feedback during the beta testing program."
+    image: "{repository_url}/images/beta-tester-badge.png"
+    criteria: "The earner participated in a formal beta program."
+    issuer_id: "acme_product"
+    inputs:
+      evidence_url: true
+      notes: true
