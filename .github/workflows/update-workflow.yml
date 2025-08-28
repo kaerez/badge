@@ -9,8 +9,8 @@ on:
 
 permissions:
   contents: write
-  workflows: write
-
+  actions: write
+  
 jobs:
   update:
     runs-on: ubuntu-latest
