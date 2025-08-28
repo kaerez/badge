@@ -1,0 +1,23 @@
+'on':
+  workflow_dispatch:
+    inputs:
+      badge_id:
+        description: Select the badge
+        required: true
+        type: choice
+        options:
+        - vsre1
+      recipient_email:
+        description: Recipient's Email
+        required: true
+        type: string
+      expires:
+        description: Badge expiration - YYYY-MM-DDTHH:MM:SSZ format (optional)
+        required: false
+        type: string
+        default: ''
+      startDate:
+        description: Eligibility earned date - YYYY-MM-DDTHH:MM:SSZ format, e.g. 2025-08-28T10:20:00Z
+        required: false
+        type: string
+        default: ''
