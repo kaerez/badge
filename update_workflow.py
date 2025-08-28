@@ -20,16 +20,21 @@ ISSUER_OUTPUT_DIR = 'public'
 
 def get_workflow_template():
     """Returns the complete, static template for the generate-badge.yml workflow."""
-    # FIX: The multi-line 'run' command is now a LiteralString to ensure correct YAML formatting.
-    # The shell script is also simplified to be more robust.
+    # FIX: This script is now fully dynamic. It iterates through all provided
+    # workflow inputs at runtime and builds the argument string for the python script.
     run_script = LiteralString(
         'mkdir -p badges_output\n'
         'python_args="--output-dir badges_output"\n'
-        'if [[ -n "${{ github.event.inputs.badge_id }}" ]]; then python_args="$python_args --badge-id \'${{ github.event.inputs.badge_id }}\'"; fi\n'
-        'if [[ -n "${{ github.event.inputs.recipient_email }}" ]]; then python_args="$python_args --recipient-email \'${{ github.event.inputs.recipient_email }}\'"; fi\n'
-        'if [[ -n "${{ github.event.inputs.expires }}" ]]; then python_args="$python_args --expires \'${{ github.event.inputs.expires }}\'"; fi\n'
-        'if [[ -n "${{ github.event.inputs.startDate }}" ]]; then python_args="$python_args --startDate \'${{ github.event.inputs.startDate }}\'"; fi\n'
-        'python generate_badge.py $python_args\n'
+        '# Use jq to iterate over the inputs JSON object and build the command\n'
+        'for key in $(echo \'${{ toJSON(github.event.inputs) }}\' | jq -r \'keys[]\'); do\n'
+        '  value=$(echo \'${{ toJSON(github.event.inputs) }}\' | jq -r --arg k "$key" \'.[$k]\')\n'
+        '  # Add to args if the value is not null or an empty string\n'
+        '  if [[ "$value" != "null" && -n "$value" ]]; then\n'
+        '    python_args="$python_args --$key \\"$value\\""\n'
+        '  fi\n'
+        'done\n'
+        '# Execute the python script with the dynamically constructed arguments\n'
+        'eval "python generate_badge.py $python_args"\n'
     )
 
     return {
