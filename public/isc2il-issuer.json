@@ -2,8 +2,8 @@
   "name": "ISC2 IL",
   "url": "https://isc2chapter-israel.org",
   "email": "",
-  "publicKey": "https://kaerez.github.io/badges/public/ksec.pem",
-  "id": "https://kaerez.github.io/badges/public/isc2il-issuer.json",
+  "publicKey": "https://kaerez.github.io/badge/public/ksec.pem",
+  "id": "https://kaerez.github.io/badge/public/isc2il-issuer.json",
   "@context": "https://wid.org/openbadges/v2",
   "type": "Issuer"
 }
