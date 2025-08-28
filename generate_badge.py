@@ -123,7 +123,7 @@ def generate_badge(args):
     }
     assertion = {
         "@context": "https://w3id.org/openbadges/v2", "type": "Assertion",
-        "id": f"{repo_url}/assertions/{uuid.uuid4()}.json",
+        "id": f"urn:uuid:{uuid.uuid4()}",
         "recipient": {"type": "email", "identity": identity, "hashed": True, "salt": recipient_salt},
         "badge": badge_class,
         "verification": {"type": "SignedBadge", "creator": full_issuer_object['publicKey']},

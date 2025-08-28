@@ -76,7 +76,7 @@ def update_workflow_file(config):
                         'uses': 'actions/upload-artifact@v4',
                         'with': {
                             'name': 'open-badge-${{ github.event.inputs.badge_id }}-${{ github.run_id }}',
-                            'path': 'badges_output/'
+                            'path': 'badges_output/*.png'
                         }
                     }
                 ]
