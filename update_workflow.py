@@ -15,21 +15,17 @@ def update_workflow_file(config):
     badge_ids = list(config.get('badges', {}).keys())
     global_inputs = config.get('global_inputs', {})
     
-    # Determine the complete set of unique inputs that require a user interface
     ui_inputs = set()
     for badge_data in config.get('badges', {}).values():
         for input_key, input_config in badge_data.get('inputs', {}).items():
-            # Add to UI if 'input: false' is not present or not true
             if not (isinstance(input_config, dict) and input_config.get('input') is False):
                 ui_inputs.add(input_key)
     
-    # Also check for the special 'expires' case
     if any(badge.get('expires') for badge in config.get('badges', {}).values()):
         ui_inputs.add('expires')
 
     print(f"All unique UI inputs used across badges: {sorted(list(ui_inputs))}")
 
-    # Build the new inputs block for the workflow YAML
     new_workflow_inputs = {
         'badge_id': {'description': 'Select the badge', 'required': True, 'type': 'choice', 'options': sorted(badge_ids)},
         'recipient_email': {'description': "Recipient's Email", 'required': True, 'type': 'string'}
@@ -37,26 +33,34 @@ def update_workflow_file(config):
     
     for input_key in sorted(list(ui_inputs)):
         input_config = global_inputs.get(input_key, {})
-        # Special handling for the built-in 'expires' field
         if input_key == 'expires':
             input_config = {'description': 'Badge expiration - YYYY-MM-DDTHH:MM:SSZ format (optional)'}
 
         new_workflow_inputs[input_key] = {
             'description': input_config.get('description', f'Value for {input_key}'),
-            'required': False, # All dynamic inputs are optional at the UI level
+            'required': False,
             'type': 'string',
-            'default': input_config.get('default', '') # Add default value if present
+            'default': input_config.get('default', '')
         }
 
-    with open(WORKFLOW_PATH, 'r') as f:
-        workflow_data = yaml.safe_load(f)
+    try:
+        with open(WORKFLOW_PATH, 'r') as f:
+            workflow_data = yaml.safe_load(f)
+            if not isinstance(workflow_data, dict):
+                workflow_data = {} # Treat non-dict files as empty
+    except FileNotFoundError:
+        workflow_data = {} # Treat missing file as empty
+
+    # **FIX**: Safely access nested keys using .get() to prevent KeyError
+    current_inputs = workflow_data.get('on', {}).get('workflow_dispatch', {}).get('inputs')
         
-    if workflow_data['on']['workflow_dispatch']['inputs'] == new_workflow_inputs:
+    if current_inputs == new_workflow_inputs:
         print("Workflow UI is already up-to-date.")
         return
 
     print("Workflow UI is outdated. Rebuilding...")
-    workflow_data['on']['workflow_dispatch']['inputs'] = new_workflow_inputs
+    # Ensure the nested dictionary structure exists before assigning to it
+    workflow_data.setdefault('on', {}).setdefault('workflow_dispatch', {})['inputs'] = new_workflow_inputs
     
     with open(WORKFLOW_PATH, 'w') as f:
         yaml.dump(workflow_data, f, sort_keys=False, width=120)
