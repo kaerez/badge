@@ -55,8 +55,8 @@ You need an RSA key pair for each distinct issuer profile you intend to use.
         openssl rsa -in my-issuer-private.pem -pubout -out my-issuer-public.pem
         ```
     * **Option B (CyberChef)**: Use this pre-configured link to generate an RSA key pair directly in your browser.
-        * [**CyberChef: Generate RSA Key Pair**](https://gchq.github.io/CyberChef/#recipe=Generate_RSA_Key_Pair('2048','PEM')&oeol=CRLF))
-        * Copy the generated "Private Key" and "Public Key" into `.pem` files.
+        * [**CyberChef: Generate RSA Key Pair**](https://gchq.github.io/CyberChef/#recipe=Generate_RSA_Key_Pair('2048','PEM')Syntax_highlighter('plaintext')&oeol=CRLF)
+        * Copy the generated "Private Key" and "Public Key" into seperate `.pem` files.
 
 2.  **Place Public Key**: Move the public key file (`my-issuer-public.pem`) into the `/public` directory of your repository.
 
@@ -81,7 +81,8 @@ Go to your repository's `Settings` > `Secrets and variables` > `Actions`. Create
 3.  **Configure Issuers & Badges**: Populate the `badges.yml` file with your issuer profiles, global inputs, and badge definitions. See the "Configuration Deep Dive" section below for details.
 4.  **Commit and Push**: Commit all your changes (including the new public keys, images, and updated `badges.yml`) and push them to GitHub. This will trigger the `Update Badge System` workflow for the first time, which will generate your issuer files and configure the badge generation workflow.
 
-## Configuration Deep Dive (`badges-template.yml` used for in this section, remember the actual file in use is `badges.yml`)
+## Configuration Deep Dive
+#### `badges-template.yml` used in this section, remember the actual file in use is `badges.yml`
 
 This file is the control panel for the entire system.
 
