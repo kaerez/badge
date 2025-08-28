@@ -24,6 +24,7 @@ This repository contains a complete, automated system for issuing W3C-compliant 
 ├── images/
 │   └── contributor-badge.png    # Your badge images go here
 ├── badges.yml                   # The main configuration file for the entire system
+├── badges-template.yml          # Template for the main configuration file (badges.yml)
 ├── generate_badge.py            # Python script that generates the badge
 ├── update_workflow.py           # Python script that updates the workflows and issuers
 ├── requirements.txt             # Python dependencies
@@ -80,7 +81,7 @@ Go to your repository's `Settings` > `Secrets and variables` > `Actions`. Create
 3.  **Configure Issuers & Badges**: Populate the `badges.yml` file with your issuer profiles, global inputs, and badge definitions. See the "Configuration Deep Dive" section below for details.
 4.  **Commit and Push**: Commit all your changes (including the new public keys, images, and updated `badges.yml`) and push them to GitHub. This will trigger the `Update Badge System` workflow for the first time, which will generate your issuer files and configure the badge generation workflow.
 
-## Configuration Deep Dive (`badges.yml`)
+## Configuration Deep Dive (`badges-template.yml` used for in this section, remember the actual file in use is `badges.yml`)
 
 This file is the control panel for the entire system.
 
