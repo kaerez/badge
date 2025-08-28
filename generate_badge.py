@@ -22,36 +22,30 @@ def validate_and_process_inputs(badge_config, global_inputs_config, args):
     final_values = {}
     badge_inputs = badge_config.get('inputs', {})
     
-    # Handle special 'expires' case first
     if badge_config.get('expires'):
         badge_inputs['expires'] = badge_config['expires']
 
     for name, config in badge_inputs.items():
         if not isinstance(config, dict):
-            config = {} # Normalize simple 'true' to an empty dict
+            config = {}
 
-        # --- Static Value Check ---
         if config.get('input') is False:
             if 'default' in config:
                 final_values[name] = config['default']
                 print(f"Applied static value for '{name}'.")
-            continue # Skip to next input, no user value to process
+            continue
 
-        # --- Get User-Provided Value ---
         user_value = getattr(args, name, None)
         
-        # --- Required Check ---
-        is_required = config.get('required', True) # Default to required
+        is_required = config.get('required', True)
         if is_required and not user_value:
             print(f"Error: Input '{name}' is required for this badge but was not provided.")
             sys.exit(1)
 
-        # --- Date Field Logic ---
         global_def = global_inputs_config.get(name, {})
         is_date_field = global_def.get('date') or name == 'expires'
 
         if user_value:
-            # Validate format if it's a date field and a value was given
             if is_date_field:
                 try:
                     datetime.strptime(user_value, '%Y-%m-%dT%H:%M:%SZ')
@@ -60,7 +54,6 @@ def validate_and_process_inputs(badge_config, global_inputs_config, args):
                     sys.exit(1)
             final_values[name] = user_value
         else:
-            # --- Default Value Logic (if no user value) ---
             if config.get('default_now'):
                 if not is_date_field:
                     print(f"Error: 'default_now' is only allowed for date fields ('{name}').")
@@ -76,9 +69,10 @@ def validate_and_process_inputs(badge_config, global_inputs_config, args):
 
 
 def get_private_key(secret_name):
+    """Retrieves a specific private key directly from an environment variable."""
     key = os.environ.get(secret_name)
     if not key:
-        print(f"Error: Secret '{secret_name}' not found.")
+        print(f"Error: Secret '{secret_name}' not found in environment.")
         sys.exit(1)
     return key
 
@@ -90,17 +84,20 @@ def generate_badge(args):
     badge_config = config['badges'][args.badge_id]
     global_inputs_config = config.get('global_inputs', {})
     
-    # This function now handles all validation and default/static value logic
     processed_inputs = validate_and_process_inputs(badge_config, global_inputs_config, args)
 
     issuer_id = badge_config['issuer_id']
     issuer_config = config['issuers'][issuer_id]
     
     private_key = get_private_key(issuer_config['private_key_secret_name'])
-    recipient_salt = os.environ['RECIPIENT_SALT']
+    
+    recipient_salt = os.environ.get('RECIPIENT_SALT')
+    if not recipient_salt:
+        print("Error: RECIPIENT_SALT not found in secrets.")
+        sys.exit(1)
+
     repo_url = config['repository_url']
 
-    # Build the full issuer object for the assertion
     full_issuer_object = json.loads(json.dumps(issuer_config))
     issuer_filename = f"{issuer_id}-issuer.json"
     full_issuer_object['id'] = f"{repo_url}/public/{issuer_filename}"
@@ -130,12 +127,22 @@ def generate_badge(args):
         "issuedOn": get_utc_now_iso(),
     }
     
-    # Add all the processed inputs (static, default, or user-provided) to the assertion
     assertion.update(processed_inputs)
 
     output_path = os.path.join(args.output_dir, f"{args.badge_id}-{uuid.uuid4()}.png")
+    
+    # The image path needs to be a local file path, not a URL.
+    # We can derive it from the image URL.
+    image_url_path = urlparse(badge_config['image']).path.lstrip('/')
+    
     print(f"Baking badge to: {output_path}")
-    badge(image=badge_config['image'], assertion=assertion, signature_key=private_key, output_file=output_path)
+    # CRITICAL FIX: The parameter name for the image is 'input_file', not 'image'.
+    badge(
+        input_file=image_url_path,
+        assertion=assertion,
+        signature_key=private_key,
+        output_file=output_path
+    )
     print("--- Badge generated successfully! ---")
 
 if __name__ == "__main__":
