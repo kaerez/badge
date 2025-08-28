@@ -133,12 +133,12 @@ def generate_badge(args):
     output_path = os.path.join(args.output_dir, f"{args.badge_id}-{uuid.uuid4()}.png")
     
     print(f"Baking badge to: {output_path}")
-    # CRITICAL FIX: The badge() function gets the image from the URL within the
-    # assertion data. It does not take an image file as a direct argument.
+    # CRITICAL FIX: The badge() function expects positional arguments for Open Badges,
+    # not keyword arguments.
     badge(
-        assertion=assertion,
-        signature_key=private_key,
-        output_file=output_path
+        assertion,
+        private_key,
+        output_path
     )
     print("--- Badge generated successfully! ---")
 
