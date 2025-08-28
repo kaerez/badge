@@ -4,6 +4,6 @@
   "email": "certifications@salesforce.com",
   "publicKey": "https://kaerez.github.io/badges/public/ksec.pem",
   "id": "https://kaerez.github.io/badges/public/sfdc-issuer.json",
-  "@context": "https://w3id.org/openbadges/v2",
+  "@context": "https://wid.org/openbadges/v2",
   "type": "Issuer"
 }
