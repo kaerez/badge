@@ -116,14 +116,14 @@ def generate_badge(args):
     identity = f"sha256${hashlib.sha256(f'{args.recipient_email}{recipient_salt}'.encode('utf-8')).hexdigest()}"
 
     badge_class = {
-        "type": "BadgeClass", "id": f"{repo_url}/badges/{args.badge_id}",
+        "type": "BadgeClass", "id": f"{repo_url}/public/badges/{args.badge_id}.json",
         "name": badge_config['name'], "description": badge_config['description'],
         "image": badge_config['image'], "criteria": {"narrative": badge_config['criteria']},
         "issuer": full_issuer_object
     }
     assertion = {
         "@context": "https://w3id.org/openbadges/v2", "type": "Assertion",
-        "id": f"{repo_url}/assertions/{uuid.uuid4()}.json",
+        "id": f"urn:uuid:{uuid.uuid4()}",
         "recipient": {"type": "email", "identity": identity, "hashed": True, "salt": recipient_salt},
         "badge": badge_class,
         "verification": {"type": "SignedBadge", "creator": full_issuer_object['publicKey']},
@@ -150,7 +150,7 @@ def generate_badge(args):
     # Bake the assertion into the image
     with open(temp_image_path, 'rb') as image_file:
         with open(output_path, 'wb') as output_file:
-            bake(image_file, json.dumps(assertion), output_file)
+            bake(image_file, json.dumps(assertion), output_file, private_key=private_key)
 
     # Clean up the temporary image file
     os.remove(temp_image_path)

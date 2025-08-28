@@ -76,7 +76,7 @@ def update_workflow_file(config):
                         'uses': 'actions/upload-artifact@v4',
                         'with': {
                             'name': 'open-badge-${{ github.event.inputs.badge_id }}-${{ github.run_id }}',
-                            'path': 'badges_output/'
+                            'path': 'badges_output/*.png'
                         }
                     }
                 ]
@@ -134,6 +134,44 @@ def generate_issuer_files(config):
             json.dump(issuer_profile, f, indent=2)
         print(f"Generated/Updated issuer file: {output_path}")
 
+def generate_badge_class_files(config):
+    """Generates public BadgeClass JSON files from the badges block."""
+    print("\n--- Generating BadgeClass Files ---")
+    BADGE_CLASS_OUTPUT_DIR = os.path.join(ISSUER_OUTPUT_DIR, 'badges')
+    os.makedirs(BADGE_CLASS_OUTPUT_DIR, exist_ok=True)
+    repo_url = config['repository_url']
+
+    for badge_id, badge_data in config.get('badges', {}).items():
+        filename = f"{badge_id}.json"
+        output_path = os.path.join(BADGE_CLASS_OUTPUT_DIR, filename)
+
+        # Get the full issuer object
+        issuer_id = badge_data['issuer_id']
+        issuer_data = config['issuers'][issuer_id]
+        full_issuer_object = json.loads(json.dumps(issuer_data))
+        issuer_filename = f"{issuer_id}-issuer.json"
+        full_issuer_object['id'] = f"{repo_url}/{ISSUER_OUTPUT_DIR}/{issuer_filename}"
+        for key, value in full_issuer_object.items():
+            if isinstance(value, str):
+                full_issuer_object[key] = value.format(repository_url=repo_url)
+        full_issuer_object.pop('private_key_secret_name', None)
+
+        # Create the BadgeClass object
+        badge_class_obj = {
+            '@context': "https://w3id.org/openbadges/v2",
+            'type': 'BadgeClass',
+            'id': f"{repo_url}/{BADGE_CLASS_OUTPUT_DIR}/{filename}",
+            'name': badge_data['name'],
+            'description': badge_data['description'],
+            'image': badge_data['image'].format(repository_url=repo_url),
+            'criteria': {'narrative': badge_data['criteria']},
+            'issuer': full_issuer_object
+        }
+
+        with open(output_path, 'w') as f:
+            json.dump(badge_class_obj, f, indent=2)
+        print(f"Generated/Updated BadgeClass file: {output_path}")
+
 if __name__ == "__main__":
     print("--- Starting update process ---")
     with open(BADGE_CONFIG_PATH, 'r') as f:
@@ -141,4 +179,5 @@ if __name__ == "__main__":
     
     update_workflow_file(config)
     generate_issuer_files(config)
+    generate_badge_class_files(config)
     print("\n--- Update process finished ---")
