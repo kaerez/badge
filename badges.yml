@@ -53,11 +53,11 @@ badges:
     issuer_id: "sfdc"
     # Specify which inputs from 'global_inputs' are required for this badge.
     inputs:
-      startDate: true
+      startDate:
         required: false
         default_now: true
-      expires: true
-        required: false
-      level: true
+      level:
         input: false
         default: "Level: I of III"
+      expires:
+        required: false
